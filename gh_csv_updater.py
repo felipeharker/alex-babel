@@ -87,11 +87,32 @@ def update_param_value(param, type_str, value_str, doc):
         print("Unsupported type: {}".format(type_str))
         return False
 
+# Global to store pending updates
+PENDING_UPDATES = []
+
 def schedule_callback(ghdoc):
     # This callback runs when the solution is finished and triggers a new one
-    ghdoc.NewSolution(False)
+    global PENDING_UPDATES
+
+    if not PENDING_UPDATES:
+        return
+
+    updated_count = 0
+    for param, type_str, value_str in PENDING_UPDATES:
+        param.RecordUndoEvent("CSV Update")
+        if update_param_value(param, type_str, value_str, ghdoc):
+            param.ExpireSolution(False)
+            updated_count += 1
+
+    PENDING_UPDATES = []
+
+    if updated_count > 0:
+        print("Successfully updated {} parameters.".format(updated_count))
+        # Start a new solution to recalculate with the new values
+        ghdoc.NewSolution(False)
 
 def main():
+    global PENDING_UPDATES
     # Check inputs (which are provided as globals by the GH Python component)
     if 'Update' not in globals() or not Update:
         return
@@ -130,6 +151,7 @@ def main():
             print("Warning: Could not find exact headers 'input name', 'type', 'value'. Assuming columns 0, 1, 2.")
             name_idx, type_idx, value_idx = 0, 1, 2
 
+        PENDING_UPDATES = []
         for row in reader:
             if len(row) <= max(name_idx, type_idx, value_idx):
                 continue
@@ -144,16 +166,11 @@ def main():
                 continue
 
             for param in target_params:
-                # Need to record undo state if we are doing this cleanly
-                param.RecordUndoEvent("CSV Update")
-                if update_param_value(param, input_type, input_value, doc):
-                    # Expire the parameter so it recalculates
-                    param.ExpireSolution(False)
-                    updated_count += 1
+                PENDING_UPDATES.append((param, input_type, input_value))
+                updated_count += 1
 
     if updated_count > 0:
-        print("Successfully updated {} parameters.".format(updated_count))
-        # Schedule a solution to evaluate the expired parameters
+        # Schedule a solution to update values outside the current solution
         delegate = gh.Kernel.GH_Document.GH_ScheduleDelegate(schedule_callback)
         doc.ScheduleSolution(5, delegate)
 
