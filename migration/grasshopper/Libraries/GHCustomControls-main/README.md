@@ -1,3 +1,0 @@
-Provides methods to add custom controls in grasshopper components such as sliders,checkboxes,toggle switches, radio buttons , groups etc...
-for WPFNumericUpDown dependency, simply download WPFNumericUpDown control from https://github.com/Torabi/WPFNumericUpDown
-

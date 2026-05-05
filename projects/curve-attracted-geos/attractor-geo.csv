@@ -1,0 +1,11 @@
+input name,type,value
+pt-x,float,0
+pt-y,float,0
+dim-u,float,120
+dim-v,float,120
+rad,float,4
+type,bool,0
+eval-x,float,0.5
+eval-y,float,0.5
+dom-a,float,0.1
+dom-b,float,0.9
