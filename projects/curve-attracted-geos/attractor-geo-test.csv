@@ -1,0 +1,11 @@
+item name,type,value
+pt-x,float,0.0
+pt-y,float,0.0
+dim-u,float,120.0
+dim-v,float,120.0
+rad,float,4.0
+eval-x,float,0.5
+eval-y,float,0.5
+type,bool,False
+dom-a,float,0.1
+dom-b,float,0.9
